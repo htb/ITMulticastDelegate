@@ -32,12 +32,12 @@ public class MulticastDelegate<P>
 
     public func invoke(invocation: (P) -> ())
     {
-        for (index, delegate) in _weakDelegates.enumerated() {
-            if let delegate = delegate.value {
-                invocation(delegate as! P)
-            } else {
-                _weakDelegates.remove(at: index)
-            }
+        // Clean up dangling delegates
+        _weakDelegates.removeAll(where: { $0.value == nil })
+
+        let currentDelegates = _weakDelegates
+        currentDelegates.forEach {
+            if let delegate = $0.value as? P { invocation(delegate) }
         }
     }
 }
